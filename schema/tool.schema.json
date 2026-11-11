@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/tibssy/ollama-gui-tools/main/schema/tool.schema.json",
+  "$id": "https://raw.githubusercontent.com/tibssy/Ollama-GUI-Tools/main/schema/tool.schema.json",
   "title": "Ollama GUI tool manifest",
   "description": "A single tool folder in the Ollama GUI tools registry.",
   "type": "object",
