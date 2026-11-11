@@ -1,0 +1,26 @@
+name: Validate tools
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate manifests and index
+        run: python3 scripts/build_index.py --check
+
+      - name: Run tool self-tests
+        run: python3 scripts/selftest.py

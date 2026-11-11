@@ -1,0 +1,25 @@
+{
+  "name": "current_time",
+  "description": "Return the current local date, time, timezone, and UTC offset. Use this whenever the user asks what time or date it is, what day of the week it is, or when they need today's date to schedule something.",
+  "version": 1,
+  "category": "core",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3"]
+  },
+  "sandbox": {},
+  "timeout_secs": 5,
+  "max_output_bytes": 4096,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "timezone": {
+        "type": "string",
+        "description": "Optional IANA timezone name, for example Europe/Budapest or America/New_York. Defaults to the system timezone."
+      }
+    },
+    "required": []
+  },
+  "default_permission": "allow",
+  "default_cloud_permission": "allow"
+}

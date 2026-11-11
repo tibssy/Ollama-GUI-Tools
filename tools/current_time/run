@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Return the current local date and time."""
+
+import json
+import sys
+from datetime import datetime, timezone
+
+try:
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+except ImportError:  # Python < 3.9
+    ZoneInfo = None
+    ZoneInfoNotFoundError = Exception
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    timezone_name = ""
+    if isinstance(params, dict):
+        timezone_name = str(params.get("timezone") or "").strip()
+
+    try:
+        if timezone_name:
+            if ZoneInfo is None:
+                emit({
+                    "success": False,
+                    "error": "Timezone lookup needs Python 3.9 or newer.",
+                })
+                return
+            now = datetime.now(ZoneInfo(timezone_name))
+        else:
+            now = datetime.now().astimezone()
+    except ZoneInfoNotFoundError:
+        emit({"success": False, "error": f"Unknown timezone '{timezone_name}'."})
+        return
+    except Exception as exc:
+        emit({"success": False, "error": f"Could not read the time: {exc}"})
+        return
+
+    offset = now.utcoffset()
+    offset_minutes = int(offset.total_seconds() // 60) if offset else 0
+    sign = "+" if offset_minutes >= 0 else "-"
+    offset_minutes = abs(offset_minutes)
+    offset_text = f"{sign}{offset_minutes // 60:02d}:{offset_minutes % 60:02d}"
+
+    timezone_label = now.tzname() or timezone_name or "local"
+    local_time = now.strftime("%H:%M:%S")
+    utc_time = now.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    date_text = f"{now:%A}, {now:%B} {now.day}, {now.year}"
+
+    result = (
+        f"{date_text}\n"
+        f"Local time: {local_time} ({timezone_label}, UTC{offset_text})\n"
+        f"ISO 8601: {now.isoformat()}\n"
+        f"UTC: {utc_time}"
+    )
+    emit({"success": True, "result": result})
+
+
+if __name__ == "__main__":
+    main()

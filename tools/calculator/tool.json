@@ -1,0 +1,25 @@
+{
+  "name": "calculator",
+  "description": "Evaluate one arithmetic expression. Supports + - * / % ** and parentheses, plus sqrt, cbrt, abs, round, floor, ceil, exp, ln, log, log2, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, and the constants pi, e, tau. Trigonometric functions use radians. Use this for exact arithmetic instead of estimating.",
+  "version": 1,
+  "category": "core",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3"]
+  },
+  "sandbox": {},
+  "timeout_secs": 5,
+  "max_output_bytes": 4096,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "expression": {
+        "type": "string",
+        "description": "The expression to evaluate, for example '(12.5 * 4) / 3' or 'sqrt(2) ** 2'."
+      }
+    },
+    "required": ["expression"]
+  },
+  "default_permission": "allow",
+  "default_cloud_permission": "allow"
+}

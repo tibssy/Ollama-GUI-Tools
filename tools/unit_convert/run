@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+"""Convert a numeric value between common units."""
+
+import json
+import sys
+
+
+LINEAR_UNITS = {
+    "length": {
+        "mm": 0.001,
+        "cm": 0.01,
+        "m": 1.0,
+        "km": 1000.0,
+        "in": 0.0254,
+        "ft": 0.3048,
+        "yd": 0.9144,
+        "mi": 1609.344,
+        "nmi": 1852.0,
+    },
+    "mass": {
+        "mg": 0.000001,
+        "g": 0.001,
+        "kg": 1.0,
+        "t": 1000.0,
+        "oz": 0.028349523125,
+        "lb": 0.45359237,
+        "st": 6.35029318,
+        "ton": 907.18474,
+    },
+    "volume": {
+        "ml": 0.001,
+        "l": 1.0,
+        "m3": 1000.0,
+        "tsp": 0.00492892159375,
+        "tbsp": 0.01478676478125,
+        "floz": 0.0295735295625,
+        "cup": 0.2365882365,
+        "pt": 0.473176473,
+        "qt": 0.946352946,
+        "gal": 3.785411784,
+    },
+    "speed": {
+        "mps": 1.0,
+        "kph": 1000.0 / 3600.0,
+        "mph": 0.44704,
+        "knot": 0.5144444444444445,
+    },
+    "data": {
+        "bit": 0.125,
+        "byte": 1.0,
+        "kb": 1000.0,
+        "mb": 1000000.0,
+        "gb": 1000000000.0,
+        "tb": 1000000000000.0,
+        "kib": 1024.0,
+        "mib": 1048576.0,
+        "gib": 1073741824.0,
+        "tib": 1099511627776.0,
+        "kbit": 125.0,
+        "mbit": 125000.0,
+        "gbit": 125000000.0,
+    },
+    "time": {
+        "ms": 0.001,
+        "s": 1.0,
+        "min": 60.0,
+        "h": 3600.0,
+        "day": 86400.0,
+        "week": 604800.0,
+    },
+    "angle": {
+        "rad": 1.0,
+        "deg": 0.017453292519943295,
+        "grad": 0.015707963267948967,
+    },
+}
+
+TEMPERATURE_UNITS = {"c", "f", "k"}
+
+ALIASES = {
+    "millimeter": "mm",
+    "millimeters": "mm",
+    "millimetre": "mm",
+    "millimetres": "mm",
+    "centimeter": "cm",
+    "centimeters": "cm",
+    "centimetre": "cm",
+    "centimetres": "cm",
+    "meter": "m",
+    "meters": "m",
+    "metre": "m",
+    "metres": "m",
+    "kilometer": "km",
+    "kilometers": "km",
+    "kilometre": "km",
+    "kilometres": "km",
+    "inch": "in",
+    "inches": "in",
+    "foot": "ft",
+    "feet": "ft",
+    "yard": "yd",
+    "yards": "yd",
+    "mile": "mi",
+    "miles": "mi",
+    "nauticalmile": "nmi",
+    "nauticalmiles": "nmi",
+    "milligram": "mg",
+    "milligrams": "mg",
+    "gram": "g",
+    "grams": "g",
+    "kilogram": "kg",
+    "kilograms": "kg",
+    "tonne": "t",
+    "tonnes": "t",
+    "metrictone": "t",
+    "metrictons": "t",
+    "ounce": "oz",
+    "ounces": "oz",
+    "pound": "lb",
+    "pounds": "lb",
+    "lbs": "lb",
+    "stone": "st",
+    "stones": "st",
+    "shortton": "ton",
+    "shorttons": "ton",
+    "tons": "ton",
+    "celsius": "c",
+    "centigrade": "c",
+    "fahrenheit": "f",
+    "kelvin": "k",
+    "milliliter": "ml",
+    "milliliters": "ml",
+    "millilitre": "ml",
+    "millilitres": "ml",
+    "liter": "l",
+    "liters": "l",
+    "litre": "l",
+    "litres": "l",
+    "cubicmeter": "m3",
+    "cubicmeters": "m3",
+    "cubicmetre": "m3",
+    "cubicmetres": "m3",
+    "teaspoon": "tsp",
+    "teaspoons": "tsp",
+    "tablespoon": "tbsp",
+    "tablespoons": "tbsp",
+    "fluidounce": "floz",
+    "fluidounces": "floz",
+    "cup": "cup",
+    "cups": "cup",
+    "pint": "pt",
+    "pints": "pt",
+    "quart": "qt",
+    "quarts": "qt",
+    "gallon": "gal",
+    "gallons": "gal",
+    "m/s": "mps",
+    "meterspersecond": "mps",
+    "metrespersecond": "mps",
+    "km/h": "kph",
+    "kmh": "kph",
+    "kilometersperhour": "kph",
+    "kilometresperhour": "kph",
+    "mi/h": "mph",
+    "milesperhour": "mph",
+    "knot": "knot",
+    "knots": "knot",
+    "kn": "knot",
+    "bits": "bit",
+    "b": "bit",
+    "bytes": "byte",
+    "kilobyte": "kb",
+    "kilobytes": "kb",
+    "megabyte": "mb",
+    "megabytes": "mb",
+    "gigabyte": "gb",
+    "gigabytes": "gb",
+    "terabyte": "tb",
+    "terabytes": "tb",
+    "kibibyte": "kib",
+    "kibibytes": "kib",
+    "mebibyte": "mib",
+    "mebibytes": "mib",
+    "gibibyte": "gib",
+    "gibibytes": "gib",
+    "tebibyte": "tib",
+    "tebibytes": "tib",
+    "kilobit": "kbit",
+    "kilobits": "kbit",
+    "megabit": "mbit",
+    "megabits": "mbit",
+    "gigabit": "gbit",
+    "gigabits": "gbit",
+    "millisecond": "ms",
+    "milliseconds": "ms",
+    "sec": "s",
+    "secs": "s",
+    "second": "s",
+    "seconds": "s",
+    "minute": "min",
+    "minutes": "min",
+    "mins": "min",
+    "hr": "h",
+    "hrs": "h",
+    "hour": "h",
+    "hours": "h",
+    "day": "day",
+    "days": "day",
+    "week": "week",
+    "weeks": "week",
+    "wk": "week",
+    "degree": "deg",
+    "degrees": "deg",
+    "radian": "rad",
+    "radians": "rad",
+    "gradian": "grad",
+    "gradians": "grad",
+    "gon": "grad",
+}
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def normalize(unit):
+    raw = str(unit).strip()
+    if raw in ("B", "Byte", "Bytes"):
+        return "byte"
+    return (
+        raw.lower()
+        .replace("°", "")
+        .replace(" ", "")
+        .replace("_", "")
+        .replace("-", "")
+    )
+
+
+def resolve(unit):
+    key = normalize(unit)
+    key = ALIASES.get(key, key)
+    if key in TEMPERATURE_UNITS:
+        return "temperature", key
+    for category, table in LINEAR_UNITS.items():
+        if key in table:
+            return category, key
+    return None, None
+
+
+def to_celsius(value, unit):
+    if unit == "c":
+        return value
+    if unit == "f":
+        return (value - 32.0) * 5.0 / 9.0
+    return value - 273.15
+
+
+def from_celsius(value, unit):
+    if unit == "c":
+        return value
+    if unit == "f":
+        return value * 9.0 / 5.0 + 32.0
+    return value + 273.15
+
+
+def format_value(value):
+    if value != 0 and (abs(value) < 1e-9 or abs(value) >= 1e15):
+        return f"{value:.10g}"
+    if value == int(value):
+        return str(int(value))
+    return f"{value:.10f}".rstrip("0").rstrip(".")
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    if not isinstance(params, dict):
+        params = {}
+
+    try:
+        value = float(params.get("value"))
+    except (TypeError, ValueError):
+        emit({"success": False, "error": "Provide a numeric 'value'."})
+        return
+
+    from_raw = str(params.get("from") or "").strip()
+    to_raw = str(params.get("to") or "").strip()
+    if not from_raw or not to_raw:
+        emit({"success": False, "error": "Provide both 'from' and 'to' units."})
+        return
+
+    from_category, from_unit = resolve(from_raw)
+    to_category, to_unit = resolve(to_raw)
+    if from_category is None:
+        emit({"success": False, "error": f"Unknown unit '{from_raw}'."})
+        return
+    if to_category is None:
+        emit({"success": False, "error": f"Unknown unit '{to_raw}'."})
+        return
+    if from_category != to_category:
+        emit({
+            "success": False,
+            "error": (
+                f"Cannot convert {from_raw} ({from_category}) to "
+                f"{to_raw} ({to_category})."
+            ),
+        })
+        return
+
+    if from_category == "temperature":
+        celsius = to_celsius(value, from_unit)
+        if celsius < -273.15:
+            emit({"success": False, "error": "Value is below absolute zero."})
+            return
+        result = from_celsius(celsius, to_unit)
+    else:
+        table = LINEAR_UNITS[from_category]
+        result = value * table[from_unit] / table[to_unit]
+
+    if result != result or result in (float("inf"), float("-inf")):
+        emit({"success": False, "error": "Result is not a finite number."})
+        return
+
+    emit({
+        "success": True,
+        "result": (
+            f"{format_value(value)} {from_raw} = "
+            f"{format_value(result)} {to_raw}"
+        ),
+    })
+
+
+if __name__ == "__main__":
+    main()

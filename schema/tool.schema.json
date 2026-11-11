@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/tibssy/ollama-gui-tools/main/schema/tool.schema.json",
+  "title": "Ollama GUI tool manifest",
+  "description": "A single tool folder in the Ollama GUI tools registry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description",
+    "version",
+    "runtime",
+    "parameters",
+    "default_permission"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,63}$",
+      "description": "Tool id. Must match the folder name."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "What the tool does and when the model should use it."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "category": {
+      "type": "string",
+      "enum": ["core", "web", "desktop", "files", "system", "other"],
+      "default": "other"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["python3", "binary"]
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "python": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "arch": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "sandbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "network": { "type": "boolean", "default": false },
+        "wayland": { "type": "boolean", "default": false },
+        "dbus": { "type": "boolean", "default": false },
+        "runtime_dir": { "type": "boolean", "default": false },
+        "read_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "write_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "timeout_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30
+    },
+    "max_output_bytes": {
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 1048576,
+      "default": 65536
+    },
+    "file_params": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Parameter names that contain file paths. The app stages those files read-only inside the sandbox."
+    },
+    "dangerous_actions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Action values that always require confirmation, even when the tool is set to allow."
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": { "const": "object" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "type": "object" }
+        },
+        "required": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "default_permission": {
+      "type": "string",
+      "enum": ["allow", "ask", "deny"]
+    },
+    "default_cloud_permission": {
+      "type": "string",
+      "enum": ["allow", "ask", "deny"],
+      "default": "deny"
+    }
+  }
+}

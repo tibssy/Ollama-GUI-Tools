@@ -1,0 +1,33 @@
+{
+  "name": "unit_convert",
+  "description": "Convert a numeric value between units of length, mass, temperature, volume, speed, data size, time, or angle. Use this for unit conversions instead of calculating them by hand.",
+  "version": 1,
+  "category": "core",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3"]
+  },
+  "sandbox": {},
+  "timeout_secs": 5,
+  "max_output_bytes": 4096,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "type": "number",
+        "description": "The value to convert."
+      },
+      "from": {
+        "type": "string",
+        "description": "Source unit, for example km, miles, kg, lb, c, f, l, gallon, mph, gb, gib, min, hour, or deg."
+      },
+      "to": {
+        "type": "string",
+        "description": "Target unit."
+      }
+    },
+    "required": ["value", "from", "to"]
+  },
+  "default_permission": "allow",
+  "default_cloud_permission": "allow"
+}

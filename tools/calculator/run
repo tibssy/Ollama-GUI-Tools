@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+"""Evaluate one arithmetic expression without using eval()."""
+
+import json
+import math
+import sys
+
+
+class CalcError(Exception):
+    pass
+
+
+CONSTANTS = {
+    "pi": math.pi,
+    "e": math.e,
+    "tau": math.tau,
+}
+
+FUNCTIONS = {
+    "sqrt": math.sqrt,
+    "cbrt": lambda value: math.copysign(abs(value) ** (1.0 / 3.0), value),
+    "abs": abs,
+    "round": round,
+    "floor": math.floor,
+    "ceil": math.ceil,
+    "exp": math.exp,
+    "ln": math.log,
+    "log": math.log10,
+    "log2": math.log2,
+    "sin": math.sin,
+    "cos": math.cos,
+    "tan": math.tan,
+    "asin": math.asin,
+    "acos": math.acos,
+    "atan": math.atan,
+    "sinh": math.sinh,
+    "cosh": math.cosh,
+    "tanh": math.tanh,
+}
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def tokenize(text):
+    tokens = []
+    index = 0
+    length = len(text)
+    while index < length:
+        char = text[index]
+        if char.isspace():
+            index += 1
+            continue
+        if char.isdigit() or char == ".":
+            start = index
+            seen_dot = char == "."
+            index += 1
+            while index < length and (
+                text[index].isdigit() or (text[index] == "." and not seen_dot)
+            ):
+                if text[index] == ".":
+                    seen_dot = True
+                index += 1
+            if index < length and text[index] in "eE":
+                exponent_start = index + 1
+                if exponent_start < length and text[exponent_start] in "+-":
+                    exponent_start += 1
+                if exponent_start < length and text[exponent_start].isdigit():
+                    index = exponent_start + 1
+                    while index < length and text[index].isdigit():
+                        index += 1
+            literal = text[start:index]
+            try:
+                value = float(literal)
+            except ValueError:
+                raise CalcError(f"invalid number '{literal}'")
+            tokens.append(("number", value))
+            continue
+        if char.isalpha() or char == "_":
+            start = index
+            index += 1
+            while index < length and (text[index].isalnum() or text[index] == "_"):
+                index += 1
+            tokens.append(("name", text[start:index].lower()))
+            continue
+        if text.startswith("**", index):
+            tokens.append("**")
+            index += 2
+            continue
+        if char in "+-*/%^()":
+            tokens.append("^" if char == "^" else char)
+            index += 1
+            continue
+        raise CalcError(f"unexpected character '{char}'")
+    return tokens
+
+
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.position = 0
+
+    def peek(self):
+        if self.position < len(self.tokens):
+            return self.tokens[self.position]
+        return None
+
+    def take(self):
+        token = self.peek()
+        if token is None:
+            raise CalcError("unexpected end of expression")
+        self.position += 1
+        return token
+
+    def take_if(self, value):
+        if self.peek() == value:
+            self.position += 1
+            return True
+        return False
+
+    def parse(self):
+        value = self.expression()
+        if self.peek() is not None:
+            raise CalcError(f"unexpected token {self.peek()!r}")
+        return value
+
+    def expression(self):
+        value = self.term()
+        while True:
+            if self.take_if("+"):
+                value += self.term()
+            elif self.take_if("-"):
+                value -= self.term()
+            else:
+                return value
+
+    def term(self):
+        value = self.unary()
+        while True:
+            if self.take_if("*"):
+                value *= self.unary()
+            elif self.take_if("/"):
+                divisor = self.unary()
+                if divisor == 0:
+                    raise CalcError("division by zero")
+                value /= divisor
+            elif self.take_if("%"):
+                divisor = self.unary()
+                if divisor == 0:
+                    raise CalcError("modulo by zero")
+                value %= divisor
+            else:
+                return value
+
+    def unary(self):
+        if self.take_if("+"):
+            return self.unary()
+        if self.take_if("-"):
+            return -self.unary()
+        return self.power()
+
+    def power(self):
+        base = self.primary()
+        if self.take_if("**") or self.take_if("^"):
+            exponent = self.unary()
+            try:
+                return base ** exponent
+            except (OverflowError, ValueError, ZeroDivisionError) as exc:
+                raise CalcError(f"exponentiation failed: {exc}")
+        return base
+
+    def primary(self):
+        token = self.take()
+        if token == "(":
+            value = self.expression()
+            if not self.take_if(")"):
+                raise CalcError("missing closing parenthesis")
+            return value
+        if isinstance(token, tuple) and token[0] == "number":
+            return token[1]
+        if isinstance(token, tuple) and token[0] == "name":
+            name = token[1]
+            if self.take_if("("):
+                if name not in FUNCTIONS:
+                    raise CalcError(f"unknown function '{name}'")
+                argument = self.expression()
+                if not self.take_if(")"):
+                    raise CalcError("missing closing parenthesis")
+                try:
+                    return float(FUNCTIONS[name](argument))
+                except (ValueError, OverflowError, ZeroDivisionError) as exc:
+                    raise CalcError(f"{name}() failed: {exc}")
+            if name in CONSTANTS:
+                return CONSTANTS[name]
+            raise CalcError(f"unknown name '{name}' (write functions with parentheses)")
+        raise CalcError(f"unexpected token {token!r}")
+
+
+def format_number(value):
+    if not math.isfinite(value):
+        raise CalcError("result is not a finite number")
+    if value == int(value) and abs(value) < 1e16:
+        return str(int(value))
+    return f"{value:.12g}"
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    expression = ""
+    if isinstance(params, dict):
+        expression = str(params.get("expression") or "").strip()
+
+    if not expression:
+        emit({"success": False, "error": "Provide an 'expression' string."})
+        return
+
+    try:
+        tokens = tokenize(expression)
+        if not tokens:
+            raise CalcError("empty expression")
+        value = Parser(tokens).parse()
+        result = format_number(value)
+        emit({"success": True, "result": f"{expression} = {result}"})
+    except CalcError as exc:
+        emit({"success": False, "error": str(exc)})
+    except Exception as exc:
+        emit({"success": False, "error": f"Could not evaluate: {exc}"})
+
+
+if __name__ == "__main__":
+    main()
