@@ -2,12 +2,14 @@
 """Run every tool with sample arguments. Uses only the standard library."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS_DIR = ROOT / "tools"
+NETWORK_TOOLS = {"web_search"}
 
 SAMPLES = {
     "current_time": [
@@ -28,6 +30,9 @@ SAMPLES = {
         ({"value": 1, "from": "gib", "to": "gb"}, "1.073741824"),
         ({"value": 60, "from": "mph", "to": "km/h"}, "96.56064"),
     ],
+    "web_search": [
+        ({"query": "Ollama tool calling", "max_results": 3}, "http"),
+    ],
 }
 
 ERROR_SAMPLES = {
@@ -40,6 +45,9 @@ ERROR_SAMPLES = {
         {"value": 1, "from": "km", "to": "kg"},
         {"value": 1, "from": "parsec", "to": "km"},
         {"value": -500, "from": "c", "to": "f"},
+    ],
+    "web_search": [
+        {"query": ""},
     ],
 }
 
@@ -81,6 +89,10 @@ def main():
         samples = SAMPLES.get(tool_id)
         if not samples:
             print(f"warning: {tool_id}: no sample arguments, skipped")
+            continue
+
+        if tool_id in NETWORK_TOOLS and os.environ.get("TOOLS_NETWORK_TESTS") != "1":
+            print(f"skip: {tool_id} (network test; set TOOLS_NETWORK_TESTS=1)")
             continue
 
         for args, expected in samples:

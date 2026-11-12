@@ -93,6 +93,37 @@
           "size": 7705
         }
       }
+    },
+    {
+      "id": "web_search",
+      "name": "web_search",
+      "description": "Search the web for current information, news, facts, or weather. Returns result titles, URLs, and snippets. Use a concise query.",
+      "version": 1,
+      "category": "web",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [],
+      "dangerous_actions": [],
+      "default_permission": "allow",
+      "default_cloud_permission": "ask",
+      "timeout_secs": 30,
+      "max_output_bytes": 32768,
+      "files": {
+        "tool.json": {
+          "sha256": "693dfebbb92074da4bd7f59499a4b7d009689584f3c8fc667de14839542b349a",
+          "size": 776
+        },
+        "run": {
+          "sha256": "548503629a128ba965f3eb4dbe5b3ba70e22bf983f9ae577459000cb73d29986",
+          "size": 5494
+        }
+      }
     }
   ]
 }
