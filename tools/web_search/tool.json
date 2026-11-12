@@ -1,11 +1,13 @@
 {
   "name": "web_search",
   "description": "Search the web for current information, news, facts, or weather. Returns result titles, URLs, and snippets. Use a concise query.",
-  "version": 1,
+  "version": 2,
   "category": "web",
   "runtime": "python3",
   "requires": {
-    "commands": ["python3"]
+    "commands": [
+      "python3"
+    ]
   },
   "sandbox": {
     "network": true
@@ -24,7 +26,9 @@
         "description": "Number of results to return (default 5, maximum 10)."
       }
     },
-    "required": ["query"]
+    "required": [
+      "query"
+    ]
   },
   "default_permission": "allow",
   "default_cloud_permission": "ask"
