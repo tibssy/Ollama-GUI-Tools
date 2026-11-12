@@ -4,7 +4,7 @@
 import json
 import re
 import sys
-import urllib.error
+import time
 import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
@@ -87,11 +87,22 @@ def fetch_lite(query):
             "Accept-Language": "en-US,en;q=0.9",
         },
     )
-    with urllib.request.urlopen(request, timeout=15) as response:
-        if response.status in (202, 429):
-            raise RuntimeError("DuckDuckGo rate-limited the request")
-        charset = response.headers.get_content_charset() or "utf-8"
-        html = response.read(2_000_000).decode(charset, "replace")
+    html = None
+    last_error = None
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(request, timeout=15) as response:
+                if response.status in (202, 429):
+                    raise RuntimeError("DuckDuckGo rate-limited the request")
+                charset = response.headers.get_content_charset() or "utf-8"
+                html = response.read(2_000_000).decode(charset, "replace")
+            break
+        except Exception as exc:
+            last_error = exc
+            if attempt == 0:
+                time.sleep(0.6)
+    if html is None:
+        raise last_error or RuntimeError("no response")
 
     parser = LiteParser()
     parser.feed(html)
