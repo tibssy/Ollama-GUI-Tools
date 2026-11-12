@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""Current weather and forecast from Open-Meteo."""
+
+import json
+import sys
+import urllib.parse
+import urllib.request
+
+USER_AGENT = "ollama-gui-tools/1.0"
+WEATHER_CODES = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    56: "Light freezing drizzle",
+    57: "Dense freezing drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    66: "Light freezing rain",
+    67: "Heavy freezing rain",
+    71: "Slight snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    77: "Snow grains",
+    80: "Slight rain showers",
+    81: "Moderate rain showers",
+    82: "Violent rain showers",
+    85: "Slight snow showers",
+    86: "Heavy snow showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with slight hail",
+    99: "Thunderstorm with heavy hail",
+}
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def get_json(url, params, timeout=15):
+    query = urllib.parse.urlencode(params)
+    request = urllib.request.Request(
+        f"{url}?{query}",
+        headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.load(response)
+
+
+def geocode(location):
+    data = get_json(
+        "https://geocoding-api.open-meteo.com/v1/search",
+        {"name": location, "count": 1, "language": "en", "format": "json"},
+    )
+    results = data.get("results") or []
+    return results[0] if results else None
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    location = str(params.get("location") or "").strip()
+    if not location:
+        emit({"success": False, "error": "Provide a 'location' string."})
+        return
+
+    try:
+        days = int(params.get("days") or 3)
+    except (TypeError, ValueError):
+        days = 3
+    days = max(1, min(days, 7))
+
+    units = str(params.get("units") or "metric").strip().lower()
+    imperial = units in ("imperial", "us", "fahrenheit")
+
+    try:
+        place = geocode(location)
+    except Exception as exc:
+        emit({"success": False, "error": f"Weather lookup failed: {exc}"})
+        return
+    if not place:
+        emit({"success": False, "error": f"Could not find a place named '{location}'."})
+        return
+
+    latitude = place["latitude"]
+    longitude = place["longitude"]
+    name = ", ".join(
+        part
+        for part in [place.get("name"), place.get("admin1"), place.get("country")]
+        if part
+    )
+
+    forecast_params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "current": (
+            "temperature_2m,relative_humidity_2m,apparent_temperature,"
+            "precipitation,weather_code,wind_speed_10m"
+        ),
+        "daily": (
+            "weather_code,temperature_2m_max,temperature_2m_min,"
+            "precipitation_probability_max"
+        ),
+        "timezone": "auto",
+        "forecast_days": days,
+    }
+    if imperial:
+        forecast_params.update(
+            {
+                "temperature_unit": "fahrenheit",
+                "wind_speed_unit": "mph",
+                "precipitation_unit": "inch",
+            }
+        )
+
+    try:
+        data = get_json("https://api.open-meteo.com/v1/forecast", forecast_params)
+    except Exception as exc:
+        emit({"success": False, "error": f"Weather lookup failed: {exc}"})
+        return
+
+    current = data.get("current") or {}
+    current_units = data.get("current_units") or {}
+    temp_unit = current_units.get("temperature_2m", "°C")
+    wind_unit = current_units.get("wind_speed_10m", "km/h")
+    if wind_unit == "mp/h":
+        wind_unit = "mph"
+    rain_unit = current_units.get("precipitation", "mm")
+
+    lines = [f"Weather for {name} ({latitude:.4f}, {longitude:.4f})"]
+    code = current.get("weather_code")
+    lines.append(
+        "Now: "
+        f"{WEATHER_CODES.get(code, 'Unknown')}, "
+        f"{current.get('temperature_2m')}{temp_unit} "
+        f"(feels like {current.get('apparent_temperature')}{temp_unit})"
+    )
+    lines.append(
+        f"Humidity: {current.get('relative_humidity_2m')}% · "
+        f"Wind: {current.get('wind_speed_10m')} {wind_unit} · "
+        f"Precipitation: {current.get('precipitation')} {rain_unit}"
+    )
+
+    daily = data.get("daily") or {}
+    dates = daily.get("time") or []
+    for index, date in enumerate(dates):
+        code = (daily.get("weather_code") or [None] * len(dates))[index]
+        high = (daily.get("temperature_2m_max") or [None] * len(dates))[index]
+        low = (daily.get("temperature_2m_min") or [None] * len(dates))[index]
+        rain = (daily.get("precipitation_probability_max") or [None] * len(dates))[index]
+        rain_text = f" · {rain}% rain" if rain is not None else ""
+        lines.append(
+            f"{date}: {WEATHER_CODES.get(code, 'Unknown')}, "
+            f"{low}–{high}{temp_unit}{rain_text}"
+        )
+
+    emit({"success": True, "result": "\n".join(lines)})
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,66 @@
+{
+  "name": "noctalia",
+  "description": "Control the Noctalia desktop shell: volume, brightness, Wi-Fi, Bluetooth, Do Not Disturb, night light, caffeine, media playback, power profile, panels, wallpaper, workspaces, notifications, screenshots, and session actions. Use the read-only status actions first when you need to report the current state.",
+  "version": 1,
+  "category": "desktop",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3", "noctalia"]
+  },
+  "sandbox": {
+    "runtime_dir": true
+  },
+  "timeout_secs": 20,
+  "max_output_bytes": 16384,
+  "dangerous_actions": ["session", "dpms_off"],
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "status",
+          "volume_up",
+          "volume_down",
+          "volume_set",
+          "volume_mute",
+          "brightness_up",
+          "brightness_down",
+          "brightness_set",
+          "wifi_toggle",
+          "wifi_status",
+          "bluetooth_toggle",
+          "bluetooth_status",
+          "dnd_toggle",
+          "dnd_status",
+          "nightlight_toggle",
+          "caffeine_toggle",
+          "power_profile",
+          "media",
+          "wallpaper_next",
+          "wallpaper_random",
+          "workspace_switch",
+          "panel_toggle",
+          "notification_show",
+          "screenshot_fullscreen",
+          "screenshot_region",
+          "dpms_off",
+          "dpms_on",
+          "session"
+        ],
+        "description": "The Noctalia action to perform."
+      },
+      "value": {
+        "type": "string",
+        "description": "Optional value: a volume/brightness percentage, a power profile (performance, balanced, power-saver), a media action, a workspace direction, a panel id, a notification summary, or a session action (lock, logout, reboot, shutdown)."
+      },
+      "text": {
+        "type": "string",
+        "description": "Optional body for notification_show."
+      }
+    },
+    "required": ["action"]
+  },
+  "default_permission": "ask",
+  "default_cloud_permission": "deny"
+}

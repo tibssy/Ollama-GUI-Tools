@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Control the Noctalia desktop shell through its IPC CLI."""
+
+import json
+import shutil
+import subprocess
+import sys
+
+SIMPLE_COMMANDS = {
+    "status": ["status"],
+    "volume_up": ["volume-up"],
+    "volume_down": ["volume-down"],
+    "volume_mute": ["volume-mute"],
+    "brightness_up": ["brightness-up"],
+    "brightness_down": ["brightness-down"],
+    "wifi_toggle": ["wifi-toggle"],
+    "wifi_status": ["wifi-status"],
+    "bluetooth_toggle": ["bluetooth-toggle"],
+    "bluetooth_status": ["bluetooth-status"],
+    "dnd_toggle": ["notification-dnd-toggle"],
+    "dnd_status": ["notification-dnd-status"],
+    "nightlight_toggle": ["nightlight-toggle"],
+    "caffeine_toggle": ["caffeine-toggle"],
+    "wallpaper_next": ["wallpaper-next"],
+    "wallpaper_random": ["wallpaper-random"],
+    "screenshot_fullscreen": ["screenshot-fullscreen"],
+    "screenshot_region": ["screenshot-region"],
+    "dpms_off": ["dpms-off"],
+    "dpms_on": ["dpms-on"],
+}
+
+VALUE_COMMANDS = {
+    "volume_set": "volume-set",
+    "brightness_set": "brightness-set",
+    "power_profile": "power-set",
+    "media": "media",
+    "workspace_switch": "workspace-switch",
+    "panel_toggle": "panel-toggle",
+    "session": "session",
+}
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def run(command, timeout=15):
+    return subprocess.run(
+        ["noctalia", "msg", *command],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    action = str(params.get("action") or "status").strip().lower()
+    value = str(params.get("value") or "").strip()
+    text = str(params.get("text") or "").strip()
+
+    if not shutil.which("noctalia"):
+        emit({"success": False, "error": "Noctalia is not installed."})
+        return
+
+    command = None
+    if action in SIMPLE_COMMANDS:
+        command = list(SIMPLE_COMMANDS[action])
+        if action in ("volume_up", "volume_down", "brightness_up", "brightness_down") and value:
+            command.append(value)
+    elif action in VALUE_COMMANDS:
+        if not value:
+            emit({"success": False, "error": f"Action '{action}' needs a value."})
+            return
+        command = [VALUE_COMMANDS[action], value]
+    elif action == "notification_show":
+        if not value:
+            emit({"success": False, "error": "notification_show needs a summary in 'value'."})
+            return
+        command = ["notification-show", value]
+        if text:
+            command.append(text)
+    else:
+        emit({"success": False, "error": f"Unknown action '{action}'."})
+        return
+
+    if action in ("volume_set", "brightness_set"):
+        try:
+            number = int(float(value))
+        except ValueError:
+            emit({"success": False, "error": f"'{value}' is not a number."})
+            return
+        if not 0 <= number <= 100:
+            emit({"success": False, "error": "Value must be between 0 and 100."})
+            return
+        command[-1] = str(number)
+
+    if action == "power_profile" and value not in (
+        "performance",
+        "balanced",
+        "power-saver",
+    ):
+        emit(
+            {
+                "success": False,
+                "error": "Power profile must be performance, balanced, or power-saver.",
+            }
+        )
+        return
+
+    if action == "session" and value not in ("lock", "logout", "reboot", "shutdown"):
+        emit(
+            {
+                "success": False,
+                "error": "Session action must be lock, logout, reboot, or shutdown.",
+            }
+        )
+        return
+
+    try:
+        result = run(command)
+    except subprocess.TimeoutExpired:
+        emit({"success": False, "error": f"Noctalia action '{action}' timed out."})
+        return
+
+    output = result.stdout.strip()
+    if result.returncode != 0:
+        detail = (result.stderr or output).strip()
+        emit(
+            {
+                "success": False,
+                "error": detail or f"Noctalia action '{action}' failed.",
+            }
+        )
+        return
+
+    if action == "status" and output:
+        try:
+            output = json.dumps(json.loads(output), indent=2, ensure_ascii=False)
+        except json.JSONDecodeError:
+            pass
+
+    emit({"success": True, "result": output or "Done."})
+
+
+if __name__ == "__main__":
+    main()

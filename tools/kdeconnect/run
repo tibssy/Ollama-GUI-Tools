@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""Control paired KDE Connect devices."""
+
+import json
+import shutil
+import subprocess
+import sys
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def run(command, timeout=25):
+    return subprocess.run(
+        ["kdeconnect-cli", *command],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def first_available_device():
+    result = run(["-a", "--id-only"])
+    if result.returncode != 0:
+        return None
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return lines[0] if lines else None
+
+
+def device_args(device):
+    if not device:
+        return None
+    if " " in device:
+        return ["-n", device]
+    return ["-d", device]
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    action = str(params.get("action") or "list").strip().lower()
+    device = str(params.get("device") or "").strip()
+    path = str(params.get("path") or "").strip()
+    text = str(params.get("text") or "")
+    message = str(params.get("message") or "").strip()
+    destination = str(params.get("destination") or "").strip()
+
+    if not shutil.which("kdeconnect-cli"):
+        emit({"success": False, "error": "kdeconnect-cli is not installed."})
+        return
+
+    if action == "list":
+        try:
+            result = run(["-l", "--id-name-only"])
+        except subprocess.TimeoutExpired:
+            emit({"success": False, "error": "KDE Connect list timed out."})
+            return
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            emit({"success": False, "error": detail or "Could not list devices."})
+            return
+        output = result.stdout.strip()
+        emit(
+            {
+                "success": True,
+                "result": output or "No paired KDE Connect devices.",
+            }
+        )
+        return
+
+    args = device_args(device)
+    if args is None:
+        selected = first_available_device()
+        if not selected:
+            emit(
+                {
+                    "success": False,
+                    "error": "No reachable KDE Connect device. Make sure the phone is connected.",
+                }
+            )
+            return
+        args = ["-d", selected]
+
+    command = None
+    if action == "ping":
+        command = args + ["--ping-msg", message or "Hello from Ollama GUI"]
+    elif action == "ring":
+        command = args + ["--ring"]
+    elif action == "share_file":
+        if not path:
+            emit({"success": False, "error": "share_file needs a 'path'."})
+            return
+        command = args + ["--share", path]
+    elif action == "share_text":
+        if not text:
+            emit({"success": False, "error": "share_text needs 'text'."})
+            return
+        command = args + ["--share-text", text]
+    elif action == "send_clipboard":
+        command = args + ["--send-clipboard"]
+    elif action == "sms":
+        if not message or not destination:
+            emit({"success": False, "error": "sms needs 'message' and 'destination'."})
+            return
+        command = args + ["--send-sms", message, "--destination", destination]
+    elif action == "lock":
+        command = args + ["--lock"]
+    elif action == "unlock":
+        command = args + ["--unlock"]
+    elif action == "notifications":
+        command = args + ["--list-notifications"]
+    elif action == "mount":
+        command = args + ["--mount"]
+    elif action == "unpair":
+        command = args + ["--unpair"]
+    else:
+        emit({"success": False, "error": f"Unknown action '{action}'."})
+        return
+
+    try:
+        result = run(command)
+    except subprocess.TimeoutExpired:
+        emit({"success": False, "error": f"KDE Connect action '{action}' timed out."})
+        return
+
+    output = result.stdout.strip()
+    if result.returncode != 0:
+        detail = (result.stderr or output).strip()
+        emit(
+            {
+                "success": False,
+                "error": detail or f"KDE Connect action '{action}' failed.",
+            }
+        )
+        return
+
+    emit({"success": True, "result": output or "Done."})
+
+
+if __name__ == "__main__":
+    main()

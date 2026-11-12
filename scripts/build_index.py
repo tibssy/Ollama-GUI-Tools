@@ -27,6 +27,7 @@ MANIFEST_KEYS = {
     "timeout_secs",
     "max_output_bytes",
     "file_params",
+    "preserve_file_paths",
     "dangerous_actions",
     "parameters",
     "default_permission",
@@ -156,6 +157,12 @@ def validate_manifest(tool_id, manifest):
     for key in ("read_paths", "write_paths"):
         if key in sandbox:
             validate_path_list(sandbox[key], f"sandbox.{key}")
+
+    preserve_file_paths = manifest.get("preserve_file_paths", False)
+    require(
+        isinstance(preserve_file_paths, bool),
+        "'preserve_file_paths' must be a boolean",
+    )
 
     file_params = manifest.get("file_params", [])
     require(is_string_list(file_params), "'file_params' must be a list of strings")

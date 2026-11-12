@@ -1,0 +1,40 @@
+{
+  "name": "clipboard",
+  "description": "Read the current clipboard text, or write new text to the clipboard. Use when the user asks to copy something (an answer, a snippet, a number, or a URL) or to read what they have copied.",
+  "version": 2,
+  "category": "desktop",
+  "runtime": "python3",
+  "requires": {
+    "commands": [
+      "python3"
+    ]
+  },
+  "sandbox": {
+    "wayland": true,
+    "runtime_dir": true
+  },
+  "timeout_secs": 10,
+  "max_output_bytes": 8192,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "read",
+          "set"
+        ],
+        "description": "'read' returns the current clipboard text; 'set' copies the provided text."
+      },
+      "text": {
+        "type": "string",
+        "description": "The text to copy (only used with action 'set')."
+      }
+    },
+    "required": [
+      "action"
+    ]
+  },
+  "default_permission": "ask",
+  "default_cloud_permission": "deny"
+}

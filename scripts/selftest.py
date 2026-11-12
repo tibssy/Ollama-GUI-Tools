@@ -9,7 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS_DIR = ROOT / "tools"
-NETWORK_TOOLS = {"web_search"}
+NETWORK_TOOLS = {"web_search", "weather"}
+DESKTOP_TOOLS = {"clipboard", "noctalia", "kdeconnect"}
 
 SAMPLES = {
     "current_time": [
@@ -33,6 +34,18 @@ SAMPLES = {
     "web_search": [
         ({"query": "Ollama tool calling", "max_results": 3}, "http"),
     ],
+    "weather": [
+        ({"location": "Budapest", "days": 2}, "Weather for"),
+    ],
+    "clipboard": [
+        ({"action": "read"}, ""),
+    ],
+    "noctalia": [
+        ({"action": "dnd_status"}, ""),
+    ],
+    "kdeconnect": [
+        ({"action": "list"}, ""),
+    ],
 }
 
 ERROR_SAMPLES = {
@@ -48,6 +61,18 @@ ERROR_SAMPLES = {
     ],
     "web_search": [
         {"query": ""},
+    ],
+    "weather": [
+        {"location": ""},
+    ],
+    "clipboard": [
+        {"action": "nope"},
+    ],
+    "noctalia": [
+        {"action": "nope"},
+    ],
+    "kdeconnect": [
+        {"action": "nope"},
     ],
 }
 
@@ -93,6 +118,9 @@ def main():
 
         if tool_id in NETWORK_TOOLS and os.environ.get("TOOLS_NETWORK_TESTS") != "1":
             print(f"skip: {tool_id} (network test; set TOOLS_NETWORK_TESTS=1)")
+            continue
+        if tool_id in DESKTOP_TOOLS and os.environ.get("TOOLS_DESKTOP_TESTS") != "1":
+            print(f"skip: {tool_id} (desktop test; set TOOLS_DESKTOP_TESTS=1)")
             continue
 
         for args, expected in samples:

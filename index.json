@@ -95,6 +95,37 @@
       }
     },
     {
+      "id": "weather",
+      "name": "weather",
+      "description": "Get current weather and a short daily forecast for a place. Uses Open-Meteo and needs no API key. The location can be a city name or a place such as 'Budapest' or 'New York'.",
+      "version": 1,
+      "category": "web",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [],
+      "dangerous_actions": [],
+      "default_permission": "allow",
+      "default_cloud_permission": "ask",
+      "timeout_secs": 30,
+      "max_output_bytes": 16384,
+      "files": {
+        "tool.json": {
+          "sha256": "f511d5f46065048132232422a65b366f604309d16ed3b007da08b4d1dc5837b0",
+          "size": 996
+        },
+        "run": {
+          "sha256": "1fb9b1f69935d9680af2f698cbb40cd7bc64e573f33c42f28d220e6b88a0e931",
+          "size": 5172
+        }
+      }
+    },
+    {
       "id": "web_search",
       "name": "web_search",
       "description": "Search the web for current information, news, facts, or weather. Returns result titles, URLs, and snippets. Use a concise query.",
@@ -122,6 +153,108 @@
         "run": {
           "sha256": "c6eee064c1c2973cd54524280b66f69cbbf43dc13baa433ee2405267e221d2cf",
           "size": 5824
+        }
+      }
+    },
+    {
+      "id": "clipboard",
+      "name": "clipboard",
+      "description": "Read the current clipboard text, or write new text to the clipboard. Use when the user asks to copy something (an answer, a snippet, a number, or a URL) or to read what they have copied.",
+      "version": 2,
+      "category": "desktop",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [],
+      "dangerous_actions": [],
+      "default_permission": "ask",
+      "default_cloud_permission": "deny",
+      "timeout_secs": 10,
+      "max_output_bytes": 8192,
+      "files": {
+        "tool.json": {
+          "sha256": "086f2f3694f0b56c9fb54737b5d47a7c2dac6f4118b5ca31b1056091497be633",
+          "size": 993
+        },
+        "run": {
+          "sha256": "b7a57a9d6fdd39f7f5b25a628f5983dc7e87faef16f81bef2c063a4e17540fba",
+          "size": 4107
+        }
+      }
+    },
+    {
+      "id": "kdeconnect",
+      "name": "kdeconnect",
+      "description": "Control paired devices through KDE Connect: list devices, ping, ring, share a file or text, send the clipboard, send an SMS, lock or unlock the phone, list notifications, or mount the phone's filesystem. Use 'list' first when you need a device id.",
+      "version": 1,
+      "category": "desktop",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3",
+          "kdeconnect-cli"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [
+        "path"
+      ],
+      "dangerous_actions": [
+        "unpair"
+      ],
+      "default_permission": "ask",
+      "default_cloud_permission": "deny",
+      "timeout_secs": 30,
+      "max_output_bytes": 16384,
+      "files": {
+        "tool.json": {
+          "sha256": "97d0ce8460ddb8b5951e41ae767d1584be6ba7e7a721021d6f9416405fb169c0",
+          "size": 1841
+        },
+        "run": {
+          "sha256": "9357c32c63d900e172dd44b677a67bb5ec3a1712006b5cc9626ad96e6db222d9",
+          "size": 4265
+        }
+      }
+    },
+    {
+      "id": "noctalia",
+      "name": "noctalia",
+      "description": "Control the Noctalia desktop shell: volume, brightness, Wi-Fi, Bluetooth, Do Not Disturb, night light, caffeine, media playback, power profile, panels, wallpaper, workspaces, notifications, screenshots, and session actions. Use the read-only status actions first when you need to report the current state.",
+      "version": 1,
+      "category": "desktop",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3",
+          "noctalia"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [],
+      "dangerous_actions": [
+        "session",
+        "dpms_off"
+      ],
+      "default_permission": "ask",
+      "default_cloud_permission": "deny",
+      "timeout_secs": 20,
+      "max_output_bytes": 16384,
+      "files": {
+        "tool.json": {
+          "sha256": "39839581be0a43f8fc8cb3b4363e5baa34ebcad8d4e1f1de3ac10e749f5b2951",
+          "size": 2086
+        },
+        "run": {
+          "sha256": "143f81b66c208a1a54b1d1cb27fb995816533c350205e3513ec1aaab69ed0963",
+          "size": 4435
         }
       }
     }

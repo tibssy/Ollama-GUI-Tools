@@ -31,12 +31,22 @@
     },
     "category": {
       "type": "string",
-      "enum": ["core", "web", "desktop", "files", "system", "other"],
+      "enum": [
+        "core",
+        "web",
+        "desktop",
+        "files",
+        "system",
+        "other"
+      ],
       "default": "other"
     },
     "runtime": {
       "type": "string",
-      "enum": ["python3", "binary"]
+      "enum": [
+        "python3",
+        "binary"
+      ]
     },
     "requires": {
       "type": "object",
@@ -44,15 +54,24 @@
       "properties": {
         "commands": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "python": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "arch": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
@@ -60,17 +79,33 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "network": { "type": "boolean", "default": false },
-        "wayland": { "type": "boolean", "default": false },
-        "dbus": { "type": "boolean", "default": false },
-        "runtime_dir": { "type": "boolean", "default": false },
+        "network": {
+          "type": "boolean",
+          "default": false
+        },
+        "wayland": {
+          "type": "boolean",
+          "default": false
+        },
+        "dbus": {
+          "type": "boolean",
+          "default": false
+        },
+        "runtime_dir": {
+          "type": "boolean",
+          "default": false
+        },
         "read_paths": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "write_paths": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -88,36 +123,62 @@
     },
     "file_params": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Parameter names that contain file paths. The app stages those files read-only inside the sandbox."
+    },
+    "preserve_file_paths": {
+      "type": "boolean",
+      "default": false,
+      "description": "Keep the host path for file parameters instead of staging them under /sandbox/incoming. Needed when a daemon outside the sandbox reads the file."
     },
     "dangerous_actions": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Action values that always require confirmation, even when the tool is set to allow."
     },
     "parameters": {
       "type": "object",
-      "required": ["type", "properties"],
+      "required": [
+        "type",
+        "properties"
+      ],
       "properties": {
-        "type": { "const": "object" },
+        "type": {
+          "const": "object"
+        },
         "properties": {
           "type": "object",
-          "additionalProperties": { "type": "object" }
+          "additionalProperties": {
+            "type": "object"
+          }
         },
         "required": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "default_permission": {
       "type": "string",
-      "enum": ["allow", "ask", "deny"]
+      "enum": [
+        "allow",
+        "ask",
+        "deny"
+      ]
     },
     "default_cloud_permission": {
       "type": "string",
-      "enum": ["allow", "ask", "deny"],
+      "enum": [
+        "allow",
+        "ask",
+        "deny"
+      ],
       "default": "deny"
     }
   }

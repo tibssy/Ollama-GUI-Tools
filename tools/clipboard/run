@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Read or write the system clipboard."""
+
+import json
+import shutil
+import subprocess
+import sys
+
+MAX_CHARS = 4000
+
+
+def emit(payload):
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def run(command, input_text=None):
+    return subprocess.run(
+        command,
+        input=input_text,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+
+def set_with_owner(command, text):
+    """Start a clipboard owner that may intentionally stay resident."""
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        start_new_session=True,
+    )
+    try:
+        process.stdin.write(text)
+        process.stdin.close()
+    except (BrokenPipeError, OSError):
+        pass
+    try:
+        process.wait(timeout=1.5)
+    except subprocess.TimeoutExpired:
+        # The owner keeps serving the selection; that is expected.
+        pass
+
+
+def main():
+    try:
+        params = json.load(sys.stdin)
+    except Exception:
+        params = {}
+
+    action = str(params.get("action") or "read").strip().lower()
+    text = str(params.get("text") or "")
+
+    if action == "read":
+        if shutil.which("noctalia"):
+            result = run(["noctalia", "msg", "clipboard-text"])
+            if result.returncode == 0:
+                content = result.stdout
+                if not content.strip():
+                    emit({"success": True, "result": "The clipboard is empty."})
+                else:
+                    if len(content) > MAX_CHARS:
+                        content = content[:MAX_CHARS] + "…[clipped]"
+                    emit({"success": True, "result": content})
+                return
+
+        if shutil.which("wl-paste"):
+            result = run(["wl-paste", "-n"])
+        elif shutil.which("xclip"):
+            result = run(["xclip", "-o", "-selection", "clipboard"])
+        else:
+            emit(
+                {
+                    "success": False,
+                    "error": "No clipboard tool found. Install wl-clipboard (Wayland) or xclip (X11).",
+                }
+            )
+            return
+
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip()
+            if "nothing" in detail.lower() or "empty" in detail.lower():
+                emit({"success": True, "result": "The clipboard is empty."})
+            else:
+                emit(
+                    {
+                        "success": False,
+                        "error": detail or "Could not read the clipboard.",
+                    }
+                )
+            return
+
+        content = result.stdout
+        if not content.strip():
+            emit({"success": True, "result": "The clipboard is empty."})
+            return
+        if len(content) > MAX_CHARS:
+            content = content[:MAX_CHARS] + "…[clipped]"
+        emit({"success": True, "result": content})
+        return
+
+    if action == "set":
+        if not text:
+            emit({"success": False, "error": "No text provided for the clipboard."})
+            return
+        if shutil.which("noctalia"):
+            result = run(["noctalia", "msg", "clipboard-copy", text])
+            if result.returncode == 0:
+                emit({"success": True, "result": "Copied to the clipboard."})
+                return
+
+        if shutil.which("wl-copy"):
+            set_with_owner(["wl-copy"], text)
+            emit({"success": True, "result": "Copied to the clipboard."})
+            return
+        if shutil.which("xclip"):
+            set_with_owner(["xclip", "-selection", "clipboard"], text)
+            emit({"success": True, "result": "Copied to the clipboard."})
+            return
+        emit(
+            {
+                "success": False,
+                "error": "No clipboard tool found. Install wl-clipboard (Wayland), xclip (X11), or Noctalia.",
+            }
+        )
+        return
+
+    emit({"success": False, "error": f"Unknown action '{action}' (use read or set)."})
+
+
+if __name__ == "__main__":
+    main()

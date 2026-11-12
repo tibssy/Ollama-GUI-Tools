@@ -1,0 +1,67 @@
+{
+  "name": "kdeconnect",
+  "description": "Control paired devices through KDE Connect: list devices, ping, ring, share a file or text, send the clipboard, send an SMS, lock or unlock the phone, list notifications, or mount the phone's filesystem. Use 'list' first when you need a device id.",
+  "version": 1,
+  "category": "desktop",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3", "kdeconnect-cli"]
+  },
+  "sandbox": {
+    "dbus": true,
+    "runtime_dir": true,
+    "wayland": true,
+    "read_paths": ["~/.config/kdeconnect"]
+  },
+  "timeout_secs": 30,
+  "max_output_bytes": 16384,
+  "file_params": ["path"],
+  "preserve_file_paths": true,
+  "dangerous_actions": ["unpair"],
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "list",
+          "ping",
+          "ring",
+          "share_file",
+          "share_text",
+          "send_clipboard",
+          "sms",
+          "lock",
+          "unlock",
+          "notifications",
+          "mount",
+          "unpair"
+        ],
+        "description": "The KDE Connect action to perform."
+      },
+      "device": {
+        "type": "string",
+        "description": "Optional device name or id. Defaults to the first reachable device."
+      },
+      "path": {
+        "type": "string",
+        "description": "Absolute path of the file to share (share_file)."
+      },
+      "text": {
+        "type": "string",
+        "description": "Text to share (share_text)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Message for ping or sms."
+      },
+      "destination": {
+        "type": "string",
+        "description": "Phone number for sms."
+      }
+    },
+    "required": ["action"]
+  },
+  "default_permission": "ask",
+  "default_cloud_permission": "deny"
+}

@@ -1,0 +1,36 @@
+{
+  "name": "weather",
+  "description": "Get current weather and a short daily forecast for a place. Uses Open-Meteo and needs no API key. The location can be a city name or a place such as 'Budapest' or 'New York'.",
+  "version": 1,
+  "category": "web",
+  "runtime": "python3",
+  "requires": {
+    "commands": ["python3"]
+  },
+  "sandbox": {
+    "network": true
+  },
+  "timeout_secs": 30,
+  "max_output_bytes": 16384,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "location": {
+        "type": "string",
+        "description": "City or place name, for example Budapest or New York."
+      },
+      "days": {
+        "type": "integer",
+        "description": "Forecast days (default 3, maximum 7)."
+      },
+      "units": {
+        "type": "string",
+        "enum": ["metric", "imperial"],
+        "description": "Use metric (default) or imperial units."
+      }
+    },
+    "required": ["location"]
+  },
+  "default_permission": "allow",
+  "default_cloud_permission": "ask"
+}

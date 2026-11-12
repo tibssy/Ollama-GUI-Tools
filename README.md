@@ -15,9 +15,14 @@ manifest.
 | `current_time` | core | Local date, time, timezone, and UTC offset. |
 | `calculator` | core | Safe arithmetic with functions and constants. |
 | `unit_convert` | core | Length, mass, temperature, volume, speed, data, time, angle. |
+| `web_search` | web | DuckDuckGo search with titles, URLs, and snippets. |
+| `weather` | web | Current weather and a short forecast from Open-Meteo. |
+| `clipboard` | desktop | Read or write the clipboard through Noctalia, `wl-clipboard`, or `xclip`. |
+| `noctalia` | desktop | Volume, brightness, network, DND, media, panels, wallpapers, workspaces, notifications, and session actions. |
+| `kdeconnect` | desktop | List, ping, ring, share files or text, send SMS, lock/unlock, and list notifications on paired devices. |
 
-All three use only the Python standard library. More tools (web search, weather,
-clipboard, Noctalia, KDE Connect, and so on) will be added one at a time.
+All tools use only the Python standard library. Web tools need network access;
+desktop tools need the system commands listed in their manifests.
 
 ## Layout
 
@@ -81,6 +86,11 @@ The tool directory itself is read-only. `$HOME` is a scratch directory, and
 `/usr`, `/lib`, `/etc`, and `/bin` are read-only. A tool that needs to share a
 file declares it in `file_params`; the app binds that specific file read-only
 instead of exposing the home directory.
+
+Tools that must hand a path to a daemon outside the sandbox, such as KDE
+Connect's share action, set `"preserve_file_paths": true`. The app then binds
+the file at its real path and leaves the argument unchanged instead of staging
+it under `/sandbox/incoming`.
 
 ### Permissions
 
