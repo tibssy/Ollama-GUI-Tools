@@ -227,7 +227,7 @@
       "id": "noctalia",
       "name": "noctalia",
       "description": "Control the Noctalia desktop shell: volume, brightness, Wi-Fi, Bluetooth, Do Not Disturb, night light, caffeine, media playback, power profile, panels, wallpaper, workspaces, notifications, screenshots, and session actions. Use the read-only status actions first when you need to report the current state.",
-      "version": 1,
+      "version": 2,
       "category": "desktop",
       "runtime": "python3",
       "requires": {
@@ -249,8 +249,8 @@
       "max_output_bytes": 16384,
       "files": {
         "tool.json": {
-          "sha256": "39839581be0a43f8fc8cb3b4363e5baa34ebcad8d4e1f1de3ac10e749f5b2951",
-          "size": 2086
+          "sha256": "9e2449343978b13c7c2e08d58ac474b2234c24397092e61c9ae5dbf452cb0b6d",
+          "size": 2149
         },
         "run": {
           "sha256": "143f81b66c208a1a54b1d1cb27fb995816533c350205e3513ec1aaab69ed0963",
