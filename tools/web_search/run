@@ -13,7 +13,7 @@ USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
-MAX_SNIPPET_CHARS = 320
+MAX_SNIPPET_CHARS = 240
 
 
 def emit(payload):
@@ -157,10 +157,10 @@ def main():
         return
 
     try:
-        max_results = int(params.get("max_results") or 5)
+        max_results = int(params.get("max_results") or 3)
     except (TypeError, ValueError):
-        max_results = 5
-    max_results = max(1, min(max_results, 10))
+        max_results = 3
+    max_results = max(1, min(max_results, 5))
 
     errors = []
     try:

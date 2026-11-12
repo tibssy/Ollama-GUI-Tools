@@ -136,7 +136,7 @@ def main():
         wind_unit = "mph"
     rain_unit = current_units.get("precipitation", "mm")
 
-    lines = [f"Weather for {name} ({latitude:.4f}, {longitude:.4f})"]
+    lines = [f"Weather for {name}"]
     code = current.get("weather_code")
     lines.append(
         "Now: "

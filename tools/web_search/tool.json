@@ -1,7 +1,7 @@
 {
   "name": "web_search",
-  "description": "Search the web for current information, news, facts, or weather. Returns result titles, URLs, and snippets. Use a concise query.",
-  "version": 2,
+  "description": "Search the web for current information, news, facts, or weather. Returns the top result titles, URLs, and short snippets (3 by default, maximum 5). Use a concise query.",
+  "version": 3,
   "category": "web",
   "runtime": "python3",
   "requires": {
@@ -13,7 +13,7 @@
     "network": true
   },
   "timeout_secs": 30,
-  "max_output_bytes": 32768,
+  "max_output_bytes": 8192,
   "parameters": {
     "type": "object",
     "properties": {
@@ -23,7 +23,7 @@
       },
       "max_results": {
         "type": "integer",
-        "description": "Number of results to return (default 5, maximum 10)."
+        "description": "Number of results to return (default 3, maximum 5)."
       }
     },
     "required": [

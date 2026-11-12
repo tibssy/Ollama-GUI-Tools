@@ -98,37 +98,6 @@
       "id": "weather",
       "name": "weather",
       "description": "Get current weather and a short daily forecast for a place. Uses Open-Meteo and needs no API key. The location can be a city name or a place such as 'Budapest' or 'New York'.",
-      "version": 1,
-      "category": "web",
-      "runtime": "python3",
-      "requires": {
-        "commands": [
-          "python3"
-        ],
-        "python": [],
-        "arch": []
-      },
-      "file_params": [],
-      "dangerous_actions": [],
-      "default_permission": "allow",
-      "default_cloud_permission": "ask",
-      "timeout_secs": 30,
-      "max_output_bytes": 16384,
-      "files": {
-        "tool.json": {
-          "sha256": "f511d5f46065048132232422a65b366f604309d16ed3b007da08b4d1dc5837b0",
-          "size": 996
-        },
-        "run": {
-          "sha256": "1fb9b1f69935d9680af2f698cbb40cd7bc64e573f33c42f28d220e6b88a0e931",
-          "size": 5172
-        }
-      }
-    },
-    {
-      "id": "web_search",
-      "name": "web_search",
-      "description": "Search the web for current information, news, facts, or weather. Returns result titles, URLs, and snippets. Use a concise query.",
       "version": 2,
       "category": "web",
       "runtime": "python3",
@@ -144,15 +113,46 @@
       "default_permission": "allow",
       "default_cloud_permission": "ask",
       "timeout_secs": 30,
-      "max_output_bytes": 32768,
+      "max_output_bytes": 4096,
       "files": {
         "tool.json": {
-          "sha256": "e71798c2a69b3605c92ec1279e12640a7b5e683602c280131a03011c9afbfa7a",
-          "size": 800
+          "sha256": "4b71d554ba268e58fc5b2055ce1127f327fb06449a425ef77da193dd2bc6914b",
+          "size": 1049
         },
         "run": {
-          "sha256": "c6eee064c1c2973cd54524280b66f69cbbf43dc13baa433ee2405267e221d2cf",
-          "size": 5824
+          "sha256": "e701918d15b19a3938b038cfde185b2a40c9d68658432d27386659a227e8d3bc",
+          "size": 5138
+        }
+      }
+    },
+    {
+      "id": "web_search",
+      "name": "web_search",
+      "description": "Search the web for current information, news, facts, or weather. Returns the top result titles, URLs, and short snippets (3 by default, maximum 5). Use a concise query.",
+      "version": 3,
+      "category": "web",
+      "runtime": "python3",
+      "requires": {
+        "commands": [
+          "python3"
+        ],
+        "python": [],
+        "arch": []
+      },
+      "file_params": [],
+      "dangerous_actions": [],
+      "default_permission": "allow",
+      "default_cloud_permission": "ask",
+      "timeout_secs": 30,
+      "max_output_bytes": 8192,
+      "files": {
+        "tool.json": {
+          "sha256": "5d4d197078e820b6cf7ee23421bf8acc12672c1f935ffb11bd9ff29e061be99b",
+          "size": 838
+        },
+        "run": {
+          "sha256": "0c8ba9f25df8ac0e6b6790128ce8959cdee15a5e84286aa7c65f78e12dd0e42c",
+          "size": 5823
         }
       }
     },
